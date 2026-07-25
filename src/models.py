@@ -1,4 +1,4 @@
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from src.profiling import DatasetProfile
 
 
@@ -55,6 +55,14 @@ class CleaningReport:
     missing_values_by_column: dict[str, int]
 
     quality_score: QualityScore
+
+    ai_summary: str | None = None
+    ai_strengths: list[str] = field(default_factory=list)
+    ai_risks: list[str] = field(default_factory=list)
+    ai_recommendations: list[dict[str, str]] = field(
+        default_factory=list
+    )
+    ai_error: str | None = None
 
 
     def to_dict(self) -> dict:

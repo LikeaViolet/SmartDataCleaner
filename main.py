@@ -31,6 +31,13 @@ def parse_args() -> argparse.Namespace:
             "Example: --title-case Name City"
         ),
     )
+
+    parser.add_argument(
+        "--ai-insights",
+        action="store_true",
+        help="Generate AI-powered data-quality insights.",
+    )
+
     return parser.parse_args()
 
 
@@ -39,26 +46,49 @@ def main() -> None:
 
     try:
         source = read_dataset(args.input_file)
+
         cleaned, report = clean_dataset(
             source,
             title_case_columns=args.title_case,
+            generate_ai=args.ai_insights,
         )
 
-        output_path = write_dataset(cleaned, args.output)
+        output_path = write_dataset(
+            cleaned,
+            args.output,
+        )
+
         report_dir = Path(args.output).parent
-        text_report, json_report = save_reports(report, report_dir)
+
+        text_report, json_report = save_reports(
+            report,
+            report_dir,
+        )
 
         print("Cleaning completed successfully.")
         print(f"Cleaned file: {output_path}")
         print(f"Text report: {text_report}")
         print(f"JSON report: {json_report}")
         print(
-            f"Rows: {report.input_rows} -> {report.output_rows} | "
-            f"Duplicates removed: {report.duplicate_rows_removed}"
+            f"Rows: {report.input_rows} "
+            f"-> {report.output_rows} | "
+            f"Duplicates removed: "
+            f"{report.duplicate_rows_removed}"
         )
 
+        if args.ai_insights:
+            if report.ai_summary:
+                print("AI insights generated successfully.")
+            elif report.ai_error:
+                print(
+                    "Cleaning succeeded, but AI insights "
+                    f"were unavailable: {report.ai_error}"
+                )
+
     except (FileNotFoundError, ValueError) as exc:
-        raise SystemExit(f"Error: {exc}") from exc
+        raise SystemExit(
+            f"Error: {exc}"
+        ) from exc
 
 
 if __name__ == "__main__":

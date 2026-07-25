@@ -6,23 +6,22 @@ from src.validator import normalize_phone
 
 def normalize_phone_column(
     df: pd.DataFrame,
-    column_name: str | None,
-) -> tuple[pd.DataFrame, int, int, int, int]:
+    column_name: str | None = None,
+) -> ValidationResult:
     cleaned = df.copy()
+
+
+
+    if column_name is None or column_name not in cleaned.columns:
+        return ValidationResult(
+            dataframe=cleaned,
+            detected_column=None,
+        )
 
     valid_count = 0
     invalid_count = 0
     missing_count = 0
     standardized_count = 0
-
-    if column_name is None or column_name not in cleaned.columns:
-        return (
-            cleaned,
-            valid_count,
-            invalid_count,
-            missing_count,
-            standardized_count,
-        )
 
     original_phones = cleaned[column_name].copy()
     results = cleaned[column_name].apply(normalize_phone)

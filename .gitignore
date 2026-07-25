@@ -23,4 +23,8 @@ output/
 # Environment variables
 .env
 
+# Streamlit agent skills
+.agents/skills/developing-with-streamlit
+.claude/skills/developing-with-streamlit
+
 README.md

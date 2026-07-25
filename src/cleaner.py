@@ -19,12 +19,14 @@ from src.pipeline.text_cleaner import (
 from src.pipeline.zip_code import normalize_zip_code_column
 from src.column_detection import detect_columns
 from src.profiling import profile_dataset
+from src.ai_insights import generate_ai_insights
 from src.quality import calculate_quality_score
 
 
 def clean_dataset(
     df: pd.DataFrame,
     title_case_columns: Iterable[str] | None = None,
+    generate_ai: bool = False,
 ) -> tuple[pd.DataFrame, CleaningReport]:
 
     """
@@ -164,8 +166,7 @@ def clean_dataset(
             + invalid_currency_values
     )
 
-    validation_checks += valid_dates + invalid_dates
-    invalid_values += invalid_dates
+
 
     quality_score = calculate_quality_score(
         input_rows=input_rows - blank_rows_removed,
@@ -213,6 +214,22 @@ def clean_dataset(
         missing_values_by_column=missing_values,
         quality_score=quality_score,
     )
+
+    if generate_ai:
+        ai_result = generate_ai_insights(report)
+
+        if ai_result.insights is not None:
+            insights = ai_result.insights
+
+            report.ai_summary = insights.summary
+            report.ai_strengths = insights.strengths
+            report.ai_risks = insights.risks
+            report.ai_recommendations = [
+                recommendation.model_dump()
+                for recommendation in insights.recommendations
+            ]
+
+        report.ai_error = ai_result.error
 
 
 
