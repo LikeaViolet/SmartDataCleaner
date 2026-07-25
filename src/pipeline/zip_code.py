@@ -1,12 +1,13 @@
 import pandas as pd
 
+from src.pipeline.models import ValidationResult
 from src.validator import normalize_zip_code
 
 
 def normalize_zip_code_column(
     df: pd.DataFrame,
     column_name: str | None,
-) -> tuple[pd.DataFrame, int, int, int, int]:
+) -> ValidationResult:
     cleaned = df.copy()
 
     valid_zip_codes = 0
@@ -15,12 +16,9 @@ def normalize_zip_code_column(
     zip_codes_standardized = 0
 
     if column_name is None or column_name not in cleaned.columns:
-        return (
-            cleaned,
-            valid_zip_codes,
-            invalid_zip_codes,
-            missing_zip_codes,
-            zip_codes_standardized,
+        return ValidationResult(
+            dataframe=cleaned,
+            detected_column=column_name,
         )
 
     original_zip_values = cleaned[column_name].copy()
@@ -59,10 +57,11 @@ def normalize_zip_code_column(
         and str(original).strip() != str(normalized)
     )
 
-    return (
-        cleaned,
-        valid_zip_codes,
-        invalid_zip_codes,
-        missing_zip_codes,
-        zip_codes_standardized,
+    return ValidationResult(
+        dataframe=cleaned,
+        valid=valid_zip_codes,
+        invalid=invalid_zip_codes,
+        missing=missing_zip_codes,
+        standardized=zip_codes_standardized,
+        detected_column=column_name,
     )

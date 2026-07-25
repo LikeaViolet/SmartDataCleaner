@@ -1,6 +1,7 @@
 
 import pandas as pd
 
+from src.pipeline.models import ValidationResult
 from src.validator import validate_email
 
 
@@ -34,9 +35,10 @@ def validate_email_column(
     invalid_emails = int(email_counts.get("Invalid", 0))
     missing_emails = int(email_counts.get("Missing", 0))
 
-    return (
-        cleaned,
-        valid_emails,
-        invalid_emails,
-        missing_emails,
+    return ValidationResult(
+        dataframe=cleaned,
+        valid=valid_emails,
+        invalid=invalid_emails,
+        missing=missing_emails,
+        detected_column=column_name,
     )

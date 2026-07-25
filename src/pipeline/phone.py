@@ -1,5 +1,6 @@
 import pandas as pd
 
+from src.pipeline.models import ValidationResult
 from src.validator import normalize_phone
 
 
@@ -53,10 +54,11 @@ def normalize_phone_column(
         )
     )
 
-    return (
-        cleaned,
-        valid_count,
-        invalid_count,
-        missing_count,
-        standardized_count,
+    return ValidationResult(
+        dataframe=cleaned,
+        valid=valid_count,
+        invalid=invalid_count,
+        missing=missing_count,
+        standardized=standardized_count,
+        detected_column=column_name
     )

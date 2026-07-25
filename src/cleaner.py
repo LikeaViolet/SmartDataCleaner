@@ -67,48 +67,48 @@ def clean_dataset(
     address_column = detected_columns["address"]
     date_column = detected_columns["date"]
 
-    (
-        cleaned,
-        valid_emails,
-        invalid_emails,
-        missing_emails,
-    ) = validate_email_column(
+    email_result = validate_email_column(
         cleaned,
         column_name=email_column,
     )
+    cleaned = email_result.dataframe
 
-    (
-        cleaned,
-        valid_phones,
-        invalid_phones,
-        missing_phones,
-        phone_numbers_standardized,
-    ) = normalize_phone_column(
+    phone_result = normalize_phone_column(
         cleaned,
         column_name=phone_column,
     )
+    cleaned = phone_result.dataframe
 
-    (
-        cleaned,
-        valid_dates,
-        invalid_dates,
-        missing_dates,
-        dates_standardized,
-    ) = normalize_date_column(
+    date_result = normalize_date_column(
         cleaned,
         column_name=date_column,
     )
+    cleaned = date_result.dataframe
 
-    (
-        cleaned,
-        valid_zip_codes,
-        invalid_zip_codes,
-        missing_zip_codes,
-        zip_codes_standardized,
-    ) = normalize_zip_code_column(
+    zip_result = normalize_zip_code_column(
         cleaned,
         column_name=zip_column,
     )
+    cleaned = zip_result.dataframe
+
+    valid_emails = email_result.valid
+    invalid_emails = email_result.invalid
+    missing_emails = email_result.missing
+
+    valid_phones = phone_result.valid
+    invalid_phones = phone_result.invalid
+    missing_phones = phone_result.missing
+    phone_numbers_standardized = phone_result.standardized
+
+    valid_dates = date_result.valid
+    invalid_dates = date_result.invalid
+    missing_dates = date_result.missing
+    dates_standardized = date_result.standardized
+
+    valid_zip_codes = zip_result.valid
+    invalid_zip_codes = zip_result.invalid
+    missing_zip_codes = zip_result.missing
+    zip_codes_standardized = zip_result.standardized
 
     cleaned, title_case_cells_changed = apply_title_case(
         cleaned,
@@ -184,6 +184,6 @@ def clean_dataset(
         quality_score=quality_score,
     )
 
-    print(df.columns.tolist())
+
 
     return cleaned, report

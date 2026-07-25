@@ -1,12 +1,13 @@
 import pandas as pd
 
 from src.date_utils import normalize_date
+from src.pipeline.models import ValidationResult
 
 
 def normalize_date_column(
     df: pd.DataFrame,
     column_name: str | None,
-) -> tuple[pd.DataFrame, int, int, int, int]:
+) -> ValidationResult:
     cleaned = df.copy()
 
     valid_count = 0
@@ -15,12 +16,9 @@ def normalize_date_column(
     standardized_count = 0
 
     if column_name is None or column_name not in cleaned.columns:
-        return (
-            cleaned,
-            valid_count,
-            invalid_count,
-            missing_count,
-            standardized_count,
+        return ValidationResult(
+            dataframe=cleaned,
+            detected_column=column_name,
         )
 
     original_dates = cleaned[column_name].copy()
@@ -53,10 +51,11 @@ def normalize_date_column(
         )
     )
 
-    return (
-        cleaned,
-        valid_count,
-        invalid_count,
-        missing_count,
-        standardized_count,
+    return ValidationResult(
+        dataframe=cleaned,
+        valid=valid_count,
+        invalid=invalid_count,
+        missing=missing_count,
+        standardized=standardized_count,
+        detected_column=column_name,
     )
