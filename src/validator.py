@@ -56,3 +56,45 @@ def normalize_phone(value: Any) -> tuple[str | None, str]:
 
     formatted = f"({digits[:3]}) {digits[3:6]}-{digits[6:]}"
     return formatted, "Valid"
+
+ZIP_CODE_PATTERN = re.compile(r"^\d{5}(?:-\d{4})?$")
+
+
+def normalize_zip_code(
+    value: Any,
+) -> tuple[str | None, str]:
+    """
+    Normalize and validate a US ZIP code.
+
+    Supported formats:
+        30301
+        30301-1234
+
+    Returns:
+        A tuple containing:
+        - normalized ZIP code or None
+        - Valid, Invalid, or Missing
+    """
+
+    if value is None or pd.isna(value):
+        return None, "Missing"
+
+    if isinstance(value, float) and value.is_integer():
+        text = str(int(value))
+    else:
+        text = str(value).strip()
+
+    if not text:
+        return None, "Missing"
+
+    # Remove common spreadsheet formatting artifacts.
+    text = text.replace(" ", "")
+
+    # Recover leading zero from numeric spreadsheet values.
+    if text.isdigit() and len(text) < 5:
+        text = text.zfill(5)
+
+    if ZIP_CODE_PATTERN.fullmatch(text):
+        return text, "Valid"
+
+    return text, "Invalid"

@@ -1,6 +1,6 @@
-Name,Email,Phone,City
-  alice smith  ,alice@example.com ,4045550198,atlanta
-bob jones,bob@example.com,7705550123,marietta
-  alice smith  ,alice@example.com ,4045550198,atlanta
-,,,
-CARLA REED,carla@example.com,6785550101,decatur
+Name,Customer Email,Mobile,City,Postal Code
+  alice smith  ,alice@example.com ,4045550198,atlanta,30301
+bob jones,bob@example.com,7705550123,marietta,30060
+  alice smith  ,alice@example.com ,4045550198,atlanta,30301
+,,,,
+CARLA REED,carla@example.com,6785550101,decatur,30030

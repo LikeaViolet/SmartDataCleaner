@@ -22,8 +22,19 @@ def save_reports(
         for column, count in report.missing_values_by_column.items()
     )
 
+    quality = report.quality_score
+
     text = (
         "SMART DATA CLEANER REPORT\n"
+        "\n"
+        "DATA QUALITY\n"
+        f"Overall score: {quality.overall}%\n"
+        f"Grade: {quality.grade}\n"
+        f"Completeness: {quality.completeness}%\n"
+        f"Validity: {quality.validity}%\n"
+        f"Uniqueness: {quality.uniqueness}%\n"
+        f"Consistency: {quality.consistency}%\n"
+        
         "\n"
         f"Rows imported: {report.input_rows}\n"
         f"Rows exported: {report.output_rows}\n"
@@ -44,6 +55,13 @@ def save_reports(
         f"Invalid phone numbers: {report.invalid_phones}\n"
         f"Missing phone numbers: {report.missing_phones}\n"
         f"Phone numbers standardized: {report.phone_numbers_standardized}\n"
+        "\n"
+        
+        "ZIP code validation:\n"
+        f"Valid ZIP codes: {report.valid_zip_codes}\n"
+        f"Invalid ZIP codes: {report.invalid_zip_codes}\n"
+        f"Missing ZIP codes: {report.missing_zip_codes}\n"
+        f"ZIP codes standardized: {report.zip_codes_standardized}\n"
         "\n"
         
         "Date validation:\n"

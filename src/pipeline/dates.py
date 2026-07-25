@@ -5,6 +5,7 @@ from src.date_utils import normalize_date
 
 def normalize_date_column(
     df: pd.DataFrame,
+    column_name: str | None,
 ) -> tuple[pd.DataFrame, int, int, int, int]:
     cleaned = df.copy()
 
@@ -13,7 +14,7 @@ def normalize_date_column(
     missing_count = 0
     standardized_count = 0
 
-    if "Date" not in cleaned.columns:
+    if column_name is None or column_name not in cleaned.columns:
         return (
             cleaned,
             valid_count,
@@ -22,13 +23,19 @@ def normalize_date_column(
             standardized_count,
         )
 
-    original_dates = cleaned["Date"].copy()
-    results = cleaned["Date"].apply(normalize_date)
+    original_dates = cleaned[column_name].copy()
+    results = cleaned[column_name].apply(normalize_date)
 
-    cleaned["Date"] = results.map(lambda result: result[0])
-    cleaned["Date Status"] = results.map(lambda result: result[1])
+    status_column = f"{column_name} Status"
 
-    counts = cleaned["Date Status"].value_counts()
+    cleaned[column_name] = results.map(
+        lambda result: result[0]
+    )
+    cleaned[status_column] = results.map(
+        lambda result: result[1]
+    )
+
+    counts = cleaned[status_column].value_counts()
 
     valid_count = int(counts.get("Valid", 0))
     invalid_count = int(counts.get("Invalid", 0))
@@ -40,8 +47,8 @@ def normalize_date_column(
             and str(before).strip() != str(after).strip()
             for before, after, status in zip(
                 original_dates,
-                cleaned["Date"],
-                cleaned["Date Status"],
+                cleaned[column_name],
+                cleaned[status_column],
             )
         )
     )
