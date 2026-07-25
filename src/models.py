@@ -1,4 +1,5 @@
 from dataclasses import asdict, dataclass
+from src.profiling import DatasetProfile
 
 
 @dataclass
@@ -16,6 +17,7 @@ class QualityScore:
 
 @dataclass
 class CleaningReport:
+    dataset_profile: DatasetProfile
     input_rows: int
     output_rows: int
 
@@ -53,6 +55,7 @@ class CleaningReport:
     missing_values_by_column: dict[str, int]
 
     quality_score: QualityScore
+
 
     def to_dict(self) -> dict:
         return asdict(self)

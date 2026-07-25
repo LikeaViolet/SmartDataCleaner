@@ -32,3 +32,7 @@ def test_clean_dataset_removes_blank_duplicates_and_trims_text():
     assert report.text_cells_trimmed == 2
     assert report.valid_phones == 1
     assert report.phone_numbers_standardized == 1
+    assert report.dataset_profile.rows == 3
+    assert report.dataset_profile.columns == 3
+    assert report.dataset_profile.duplicate_rows == 0
+    assert report.duplicate_rows_removed == 1

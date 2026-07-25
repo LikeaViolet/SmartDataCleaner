@@ -18,6 +18,7 @@ from src.pipeline.text_cleaner import (
 )
 from src.pipeline.zip_code import normalize_zip_code_column
 from src.column_detection import detect_columns
+from src.profiling import profile_dataset
 from src.quality import calculate_quality_score
 
 
@@ -44,6 +45,8 @@ def clean_dataset(
     original_columns = list(df.columns)
 
     input_rows = len(df)
+
+    dataset_profile = profile_dataset(df)
 
     cleaned, blank_rows_removed = remove_blank_rows(df)
 
@@ -175,6 +178,7 @@ def clean_dataset(
     )
 
     report = CleaningReport(
+        dataset_profile=dataset_profile,
         input_rows=input_rows,
         output_rows=len(cleaned),
         blank_rows_removed=blank_rows_removed,
