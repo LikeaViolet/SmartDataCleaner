@@ -44,6 +44,10 @@ class CleaningReport:
     missing_dates: int
     dates_standardized: int
 
+    valid_currency_values: int
+    invalid_currency_values: int
+    missing_currency_values: int
+    currency_values_standardized: int
 
 
     missing_values_by_column: dict[str, int]

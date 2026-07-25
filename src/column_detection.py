@@ -56,6 +56,9 @@ COLUMN_ALIASES: dict[str, set[str]] = {
         "subtotal",
         "payment",
         "sales",
+        "order total",
+        "invoice total",
+        "purchase amount",
     },
 }
 

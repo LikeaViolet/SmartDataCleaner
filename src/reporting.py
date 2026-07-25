@@ -71,6 +71,13 @@ def save_reports(
         f"Dates standardized: {report.dates_standardized}\n"
         "\n"
         
+        "Currency validation:\n"
+        f"Valid currency values: {report.valid_currency_values}\n"
+        f"Invalid currency values: {report.invalid_currency_values}\n"
+        f"Missing currency values: {report.missing_currency_values}\n"
+        f"Currency values standardized: {report.currency_values_standardized}\n"
+        "\n"
+        
         "Missing values by column:\n"
         f"{missing_lines or '  None'}\n"
         "\n"

@@ -11,6 +11,7 @@ from src.pipeline.dates import normalize_date_column
 from src.pipeline.duplicate_cleaner import remove_duplicates
 from src.pipeline.email import validate_email_column
 from src.pipeline.phone import normalize_phone_column
+from src.pipeline.currency import normalize_currency_column
 from src.pipeline.text_cleaner import (
     title_case_columns as apply_title_case,
     trim_text_columns,
@@ -58,6 +59,7 @@ def clean_dataset(
             "zip",
             "address",
             "date",
+            "currency",
         ],
     )
 
@@ -66,6 +68,7 @@ def clean_dataset(
     zip_column = detected_columns["zip"]
     address_column = detected_columns["address"]
     date_column = detected_columns["date"]
+    currency_column = detected_columns["currency"]
 
     email_result = validate_email_column(
         cleaned,
@@ -91,6 +94,12 @@ def clean_dataset(
     )
     cleaned = zip_result.dataframe
 
+    currency_result = normalize_currency_column(
+        cleaned,
+        column_name=currency_column,
+    )
+    cleaned = currency_result.dataframe
+
     valid_emails = email_result.valid
     invalid_emails = email_result.invalid
     missing_emails = email_result.missing
@@ -110,6 +119,11 @@ def clean_dataset(
     missing_zip_codes = zip_result.missing
     zip_codes_standardized = zip_result.standardized
 
+    valid_currency_values = currency_result.valid
+    invalid_currency_values = currency_result.invalid
+    missing_currency_values = currency_result.missing
+    currency_values_standardized = currency_result.standardized
+
     cleaned, title_case_cells_changed = apply_title_case(
         cleaned,
         title_case_columns,
@@ -127,18 +141,24 @@ def clean_dataset(
     missing_data_cells = sum(missing_values.values())
 
     validation_checks = (
-        valid_emails
-        + invalid_emails
-        + valid_phones
-        + invalid_phones
-        + valid_zip_codes
-        + invalid_zip_codes
+            valid_emails
+            + invalid_emails
+            + valid_phones
+            + invalid_phones
+            + valid_zip_codes
+            + invalid_zip_codes
+            + valid_dates
+            + invalid_dates
+            + valid_currency_values
+            + invalid_currency_values
     )
 
     invalid_values = (
-        invalid_emails
-        + invalid_phones
-        + invalid_zip_codes
+            invalid_emails
+            + invalid_phones
+            + invalid_zip_codes
+            + invalid_dates
+            + invalid_currency_values
     )
 
     validation_checks += valid_dates + invalid_dates
@@ -180,6 +200,12 @@ def clean_dataset(
         invalid_dates=invalid_dates,
         missing_dates=missing_dates,
         dates_standardized=dates_standardized,
+
+        valid_currency_values=valid_currency_values,
+        invalid_currency_values=invalid_currency_values,
+        missing_currency_values=missing_currency_values,
+        currency_values_standardized=currency_values_standardized,
+
         missing_values_by_column=missing_values,
         quality_score=quality_score,
     )

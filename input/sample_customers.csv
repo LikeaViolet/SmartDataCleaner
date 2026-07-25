@@ -1,6 +1,6 @@
-Name,Customer Email,Mobile,City,Postal Code
-  alice smith  ,alice@example.com ,4045550198,atlanta,30301
-bob jones,bob@example.com,7705550123,marietta,30060
-  alice smith  ,alice@example.com ,4045550198,atlanta,30301
-,,,,
-CARLA REED,carla@example.com,6785550101,decatur,30030
+Name,Customer Email,Mobile,City,Postal Code,Order Total
+  alice smith  ,alice@example.com ,4045550198, atlanta ,30301,"$1,250.50"
+bob jones,bob@example.com,7705550188,marietta,30060,500
+bob jones,bob@example.com,7705550188,marietta,30060,500
+,,, ,,
+carol brown,carol@example.com,6785550177,savannah,31401,"($45.25)"

@@ -1,12 +1,33 @@
-from decimal import Decimal, InvalidOperation
-from typing import Any
+from __future__ import annotations
+
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
 import pandas as pd
 
 
+TWOPLACES = Decimal("0.01")
+
+
 def normalize_currency(
-    value: Any,
+    value: object,
 ) -> tuple[str | None, str]:
+    """
+    Normalize a currency-like value into a two-decimal string.
+
+    Examples:
+    $1,250.50  -> 1250.50
+    1250       -> 1250.00
+    ($45.25)   -> -45.25
+
+    Returns:
+        (normalized_value, status)
+
+    Status values:
+    - Valid
+    - Invalid
+    - Missing
+    """
+
     if value is None or pd.isna(value):
         return None, "Missing"
 
@@ -15,27 +36,35 @@ def normalize_currency(
     if not text:
         return None, "Missing"
 
-    negative = text.startswith("(") and text.endswith(")")
+    is_negative_parentheses = (
+        text.startswith("(")
+        and text.endswith(")")
+    )
 
-    cleaned = (
-        text.replace("$", "")
+    if is_negative_parentheses:
+        text = text[1:-1].strip()
+
+    text = (
+        text
+        .replace("$", "")
         .replace(",", "")
-        .replace("(", "")
-        .replace(")", "")
         .strip()
     )
 
+    if not text:
+        return None, "Invalid"
+
     try:
-        amount = Decimal(cleaned)
+        amount = Decimal(text)
     except InvalidOperation:
-        return text, "Invalid"
+        return str(value).strip(), "Invalid"
 
-    if negative:
-        amount = -abs(amount)
+    if is_negative_parentheses:
+        amount = -amount
 
-    formatted = f"${abs(amount):,.2f}"
+    amount = amount.quantize(
+        TWOPLACES,
+        rounding=ROUND_HALF_UP,
+    )
 
-    if amount < 0:
-        formatted = f"-{formatted}"
-
-    return formatted, "Valid"
+    return format(amount, ".2f"), "Valid"
