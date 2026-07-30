@@ -1,68 +1,204 @@
 from __future__ import annotations
 
+from typing import Any
+
+import pandas as pd
 import streamlit as st
 
 from src.models import CleaningReport
 
 
+PRIORITY_ORDER = {
+    "high": 0,
+    "medium": 1,
+    "low": 2,
+}
+
+
+def _recommendation_value(
+    recommendation: Any,
+    field: str,
+    default: str = "",
+) -> str:
+    """
+    Read recommendation values safely whether recommendations
+    are dictionaries or Pydantic-style objects.
+    """
+
+    if isinstance(recommendation, dict):
+        return str(recommendation.get(field, default))
+
+    return str(getattr(recommendation, field, default))
+
+
+def _sorted_recommendations(
+    recommendations: list[Any],
+) -> list[Any]:
+    return sorted(
+        recommendations,
+        key=lambda item: PRIORITY_ORDER.get(
+            _recommendation_value(
+                item,
+                "priority",
+                "low",
+            ).lower(),
+            99,
+        ),
+    )
+
+
 def render_ai_panel(report: CleaningReport) -> None:
     st.subheader("AI data quality insights")
 
-    if report.ai_summary:
-        st.markdown("#### Summary")
+    if report.ai_error:
+        st.warning(
+            "Cleaning succeeded, but AI insights were unavailable: "
+            f"{report.ai_error}"
+        )
+        return
+
+    if not report.ai_summary:
+        st.info("AI insights were not requested for this run.")
+        return
+
+    recommendations = _sorted_recommendations(
+        report.ai_recommendations
+    )
+
+    high_count = sum(
+        _recommendation_value(
+            recommendation,
+            "priority",
+        ).lower()
+        == "high"
+        for recommendation in recommendations
+    )
+
+    summary_columns = st.columns(4)
+
+    summary_columns[0].metric(
+        "Positive findings",
+        len(report.ai_strengths),
+    )
+
+    summary_columns[1].metric(
+        "Potential issues",
+        len(report.ai_risks),
+    )
+
+    summary_columns[2].metric(
+        "Recommendations",
+        len(recommendations),
+    )
+    summary_columns[3].metric(
+        "High priority",
+        high_count,
+    )
+
+    (
+        summary_tab,
+        findings_tab,
+        recommendations_tab,
+    ) = st.tabs(
+        [
+            "Summary",
+            "Strengths and risks",
+            "Recommendations",
+        ]
+    )
+
+    with summary_tab:
         st.write(report.ai_summary)
 
-        left_column, right_column = st.columns(2)
+    with findings_tab:
+        findings = []
 
-        with left_column:
-            st.markdown("#### Strengths")
+        for strength in report.ai_strengths:
+            findings.append(
+                {
+                    "Type": "Strength",
+                    "Finding": strength,
+                }
+            )
 
-            if report.ai_strengths:
-                for strength in report.ai_strengths:
-                    st.write(f"• {strength}")
-            else:
-                st.write("No strengths returned.")
+        for risk in report.ai_risks:
+            findings.append(
+                {
+                    "Type": "Risk",
+                    "Finding": risk,
+                }
+            )
 
-        with right_column:
-            st.markdown("#### Risks")
+        if findings:
+            st.dataframe(
+                pd.DataFrame(findings),
+                hide_index=True,
+                use_container_width=True,
+                column_config={
+                    "Type": st.column_config.TextColumn(
+                        "Type",
+                        width="small",
+                    ),
+                    "Finding": st.column_config.TextColumn(
+                        "Finding",
+                        width="large",
+                    ),
+                },
+            )
+        else:
+            st.write("No strengths or risks were returned.")
 
-            if report.ai_risks:
-                for risk in report.ai_risks:
-                    st.write(f"• {risk}")
-            else:
-                st.write("No risks returned.")
-
-        st.markdown("#### Recommendations")
-
-        if not report.ai_recommendations:
-            st.write("No recommendations returned.")
+    with recommendations_tab:
+        if not recommendations:
+            st.write("No recommendations were returned.")
             return
 
-        for recommendation in report.ai_recommendations:
-            priority = recommendation["priority"].upper()
-            title = recommendation["title"]
+        for position, recommendation in enumerate(
+            recommendations,
+            start=1,
+        ):
+            priority = _recommendation_value(
+                recommendation,
+                "priority",
+                "low",
+            ).upper()
 
-            with st.expander(f"[{priority}] {title}"):
-                st.write(
-                    f"**Category:** "
-                    f"{recommendation['category']}"
-                )
-                st.write(
-                    f"**Why:** "
-                    f"{recommendation['explanation']}"
-                )
-                st.write(
-                    f"**Suggested action:** "
-                    f"{recommendation['suggested_action']}"
-                )
+            title = _recommendation_value(
+                recommendation,
+                "title",
+                "Untitled recommendation",
+            )
 
-    elif report.ai_error:
-        st.warning(
-            "Cleaning succeeded, but AI insights were "
-            f"unavailable: {report.ai_error}"
-        )
+            category = _recommendation_value(
+                recommendation,
+                "category",
+                "general",
+            )
 
-    else:
-        st.info(
-            "AI insights were not requested for this run."
-        )
+            explanation = _recommendation_value(
+                recommendation,
+                "explanation",
+                "No explanation supplied.",
+            )
+
+            suggested_action = _recommendation_value(
+                recommendation,
+                "suggested_action",
+                "No action supplied.",
+            )
+
+            label = (
+                f"{position}. [{priority}] "
+                f"{title} · {category.title()}"
+            )
+
+            with st.expander(
+                label,
+                expanded=False,
+            ):
+                st.markdown(f"**Why it matters**  \n{explanation}")
+
+                st.markdown(
+                    f"**Recommended action**  \n"
+                    f"{suggested_action}"
+                )

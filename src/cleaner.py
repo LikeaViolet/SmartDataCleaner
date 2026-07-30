@@ -22,6 +22,13 @@ from src.profiling import profile_dataset
 from src.ai_insights import generate_ai_insights
 from src.quality import calculate_quality_score
 
+from src.pipeline.broker_activity import (
+    calculate_broker_missing_values,
+    is_broker_activity_dataframe,
+    normalize_broker_activity,
+    repair_broker_activity_headers,
+)
+
 
 def clean_dataset(
     df: pd.DataFrame,
@@ -43,18 +50,45 @@ def clean_dataset(
     - Optionally title-case explicitly selected columns.
     """
 
+    broker_activity_detected = (
+        is_broker_activity_dataframe(df)
+    )
 
-    original_columns = list(df.columns)
+    working_dataframe = df.copy()
 
-    input_rows = len(df)
+    if broker_activity_detected:
+        working_dataframe = (
+            repair_broker_activity_headers(
+                working_dataframe
+            )
+        )
 
-    dataset_profile = profile_dataset(df)
+    original_columns = list(
+        working_dataframe.columns
+    )
 
-    cleaned, blank_rows_removed = remove_blank_rows(df)
+    input_rows = len(working_dataframe)
+
+    dataset_profile = profile_dataset(
+        working_dataframe
+    )
+
+    cleaned, blank_rows_removed = remove_blank_rows(
+        working_dataframe
+    )
 
     cleaned, text_cells_trimmed = trim_text_columns(cleaned)
 
-    cleaned, duplicate_rows_removed = remove_duplicates(cleaned)
+    (
+        cleaned,
+        duplicate_rows_removed,
+        removed_duplicate_rows,
+    ) = remove_duplicates(cleaned)
+
+    if broker_activity_detected:
+        cleaned = normalize_broker_activity(
+            cleaned
+        )
 
     detected_columns = detect_columns(
         cleaned,
@@ -87,10 +121,17 @@ def clean_dataset(
     )
     cleaned = phone_result.dataframe
 
-    date_result = normalize_date_column(
-        cleaned,
-        column_name=date_column,
-    )
+    if broker_activity_detected:
+        date_result = normalize_date_column(
+            cleaned,
+            column_name=None,
+        )
+    else:
+        date_result = normalize_date_column(
+            cleaned,
+            column_name=date_column,
+        )
+
     cleaned = date_result.dataframe
 
     zip_result = normalize_zip_code_column(
@@ -99,10 +140,17 @@ def clean_dataset(
     )
     cleaned = zip_result.dataframe
 
-    currency_result = normalize_currency_column(
-        cleaned,
-        column_name=currency_column,
-    )
+    if broker_activity_detected:
+        currency_result = normalize_currency_column(
+            cleaned,
+            column_name=None,
+        )
+    else:
+        currency_result = normalize_currency_column(
+            cleaned,
+            column_name=currency_column,
+        )
+
     cleaned = currency_result.dataframe
 
     valid_emails = email_result.valid
@@ -134,16 +182,30 @@ def clean_dataset(
         title_case_columns,
     )
 
+    if broker_activity_detected:
+        (
+            missing_values,
+            total_data_cells,
+        ) = calculate_broker_missing_values(
+            cleaned
+        )
+    else:
+        missing_values = {
+            str(column): int(
+                cleaned[column].isna().sum()
+            )
+            for column in original_columns
+            if column in cleaned.columns
+        }
 
+        total_data_cells = (
+                len(cleaned)
+                * len(original_columns)
+        )
 
-    missing_values = {
-        str(column): int(cleaned[column].isna().sum())
-        for column in original_columns
-        if column in cleaned.columns
-    }
-
-    total_data_cells = len(cleaned) * len(original_columns)
-    missing_data_cells = sum(missing_values.values())
+    missing_data_cells = sum(
+        missing_values.values()
+    )
 
     validation_checks = (
             valid_emails
@@ -184,6 +246,11 @@ def clean_dataset(
         output_rows=len(cleaned),
         blank_rows_removed=blank_rows_removed,
         duplicate_rows_removed=duplicate_rows_removed,
+        removed_duplicate_rows=(
+            removed_duplicate_rows.to_dict(
+                orient="records"
+            )
+        ),
         text_cells_trimmed=text_cells_trimmed,
         title_case_cells_changed=title_case_cells_changed,
 

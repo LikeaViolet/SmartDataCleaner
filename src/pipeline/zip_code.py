@@ -18,7 +18,11 @@ def normalize_zip_code_column(
     if column_name is None or column_name not in cleaned.columns:
         return ValidationResult(
             dataframe=cleaned,
-            detected_column=column_name,
+            valid=0,
+            invalid=0,
+            missing=0,
+            standardized=0,
+            detected_column=None,
         )
 
     original_zip_values = cleaned[column_name].copy()

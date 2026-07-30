@@ -8,7 +8,7 @@ from src.validator import validate_email
 def validate_email_column(
     df: pd.DataFrame,
     column_name: str | None,
-) -> tuple[pd.DataFrame, int, int, int]:
+) -> ValidationResult:
     cleaned = df.copy()
 
     valid_emails = 0
@@ -16,11 +16,12 @@ def validate_email_column(
     missing_emails = 0
 
     if column_name is None or column_name not in cleaned.columns:
-        return (
-            cleaned,
-            valid_emails,
-            invalid_emails,
-            missing_emails,
+        return ValidationResult(
+            dataframe=cleaned,
+            valid=0,
+            invalid=0,
+            missing=0,
+            detected_column=None,
         )
 
     status_column = f"{column_name} Status"

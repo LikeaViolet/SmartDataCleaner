@@ -10,11 +10,13 @@ def normalize_phone_column(
 ) -> ValidationResult:
     cleaned = df.copy()
 
-
-
     if column_name is None or column_name not in cleaned.columns:
         return ValidationResult(
             dataframe=cleaned,
+            valid=0,
+            invalid=0,
+            missing=0,
+            standardized=0,
             detected_column=None,
         )
 

@@ -9,8 +9,6 @@ from src.models import CleaningReport
 def render_column_profile(
     report: CleaningReport,
 ) -> None:
-    st.subheader("Column profile")
-
     rows = [
         {
             "Column": column.name,
@@ -27,8 +25,44 @@ def render_column_profile(
         for column in report.dataset_profile.column_profiles
     ]
 
+    profile_dataframe = pd.DataFrame(rows)
+
     st.dataframe(
-        pd.DataFrame(rows),
+        profile_dataframe,
         use_container_width=True,
         hide_index=True,
+        column_config={
+            "Column": st.column_config.TextColumn(
+                "Column",
+                width="medium",
+            ),
+            "Detected type": st.column_config.TextColumn(
+                "Semantic type",
+                width="small",
+            ),
+            "Storage type": st.column_config.TextColumn(
+                "Source dtype",
+                width="small",
+            ),
+            "Non-missing": st.column_config.NumberColumn(
+                "Present",
+                format="%d",
+            ),
+            "Missing": st.column_config.NumberColumn(
+                "Missing",
+                format="%d",
+            ),
+            "Missing %": st.column_config.NumberColumn(
+                "Missing %",
+                format="%.1f%%",
+            ),
+            "Unique values": st.column_config.NumberColumn(
+                "Unique",
+                format="%d",
+            ),
+            "Unique %": st.column_config.NumberColumn(
+                "Unique %",
+                format="%.1f%%",
+            ),
+        },
     )

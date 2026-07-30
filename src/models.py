@@ -56,6 +56,10 @@ class CleaningReport:
 
     quality_score: QualityScore
 
+    removed_duplicate_rows: list[
+        dict[str, object]
+    ] = field(default_factory=list)
+
     ai_summary: str | None = None
     ai_strengths: list[str] = field(default_factory=list)
     ai_risks: list[str] = field(default_factory=list)
